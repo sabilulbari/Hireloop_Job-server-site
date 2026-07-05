@@ -45,24 +45,51 @@ async function run() {
             if(req.query.status){
                 query.status = req.query.status;
             }
-            console.log("Job Query", query);
 
             const cursor = jobCollection.find(query);
             const result = await cursor.toArray();
             res.send(result);
         })
 
-        app.post('/api/jobs', async (req, res) => {
-            const job = req.body;
-            const result = await jobCollection.insertOne(job);
-            res.send(result);
+        app.get("/api/my/companies", async (req, res) => {
+          const query = {};
+          if (req.query.recruiterId) {
+            query.recruiterId = req.query.recruiterId;
+          }
+          const result = await companyCollection.findOne(query);
+
+          res.send(result || {});
+        });
+
+        app.get("/api/jobs/:jobId", async(req, res)=>{
+            const { jobId }= req.params;
+
+            const query = {_id: new ObjectId(jobId)}
+
+            const result = await jobCollection.findOne(query);
+            res.send(result)
         })
+
+
+
+        app.post("/api/jobs", async (req, res) => {
+          const job = req.body;
+          const newJob = {
+            ...job,
+            createdAt: new Date(),
+          };
+          const result = await jobCollection.insertOne(newJob);
+          res.send(result);
+        });
+
         app.post("/api/companies", async (req, res) => {
           const job = req.body;
           const result = await companyCollection.insertOne(job);
           res.send(result);
         });
 
+
+        // company related api
         app.patch("/api/companies/:id", async (req, res) => {
           try {
             const id = req.params.id;
@@ -83,15 +110,7 @@ async function run() {
           }
         });
 
-        app.get("/api/my/companies", async (req, res) => {
-          const query = {};
-          if (req.query.recruiterId) {
-            query.recruiterId = req.query.recruiterId;
-          }
-          const result = await companyCollection.findOne(query);
-
-          res.send(result || {});
-        });
+        
 
 
 
